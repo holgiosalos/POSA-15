@@ -1,15 +1,12 @@
 package vandy.mooc;
 
-import java.util.ArrayList;
-
 import vandy.mooc.common.ContextView;
 import vandy.mooc.common.ModelOps;
 import vandy.mooc.common.PresenterOps;
-import android.content.Context;
-import android.net.Uri;
+import vandy.mooc.model.aidl.WeatherData;
 
 /**
- * Defines the interfaces for the Download Image Viewer application
+ * Defines the interfaces for the Download Weather Viewer application
  * that are required and provided by the layers in the
  * Model-View-Presenter (MVP) pattern.  This design ensures loose
  * coupling between the layers in the app's MVP-based architecture.
@@ -17,70 +14,51 @@ import android.net.Uri;
 public interface MVP {
     /**
      * This interface defines the minimum API needed by the
-     * ImagePresenter class in the Presenter layer to interact with
-     * DownloadImagesActivity in the View layer.  It extends the
+     * WeatherPresenter class in the Presenter layer to interact with
+     * DownloadWeathersActivity in the View layer.  It extends the
      * ContextView interface so the Model layer can access Context's
      * defined in the View layer.
      */
     public interface RequiredViewOps
            extends ContextView {
         /**
-         * Make the ProgressBar visible.
+         * Displays the weather data to the user.
+         *
+         * @param weatherData
+         *            WeatherData to display
+         * @param errorReason
+         *            Reason that weatherData is null
          */
-        void displayProgressBar();
-
-        /**
-         * Make the ProgressBar invisible.
-         */
-        void dismissProgressBar();
-
-        /**
-         * Display the URLs provided by the user thus far.
-         */
-        void displayUrls();
-
-        /**
-         * Handle failure to download an image.
-         */
-        void reportDownloadFailure(Uri url,
-                                   boolean downloadsComplete);
-
-        /**
-         * Start the DisplayImagesActivity to display the results of
-         * the download to the user.
-         */
-        void displayResults(Uri directoryPathname);
+        void displayResults(WeatherData weatherData,
+                            String errorMessage);
     }
 
     /**
      * This interface defines the minimum public API provided by the
-     * ImagePresenter class in the Presenter layer to the
-     * DownloadImagesActivity in the View layer.  It extends the
+     * WeatherPresenter class in the Presenter layer to the
+     * DownloadWeathersActivity in the View layer.  It extends the
      * PresenterOps interface, which is instantiated by the
      * MVP.RequiredViewOps interface used to define the parameter
      * that's passed to the onConfigurationChange() method.
      */
     public interface ProvidedPresenterOps
            extends PresenterOps<MVP.RequiredViewOps> {
-        /**
-         * Get the list of URLs.
+       /**
+         * Initiate the asynchronous weather lookup when the user
+         * presses the "Look Up Async" button.
          */
-        ArrayList<Uri> getUrlList();
+        boolean getWeatherAsync(String location);
 
         /**
-         * Start all the downloading and filtering.
+         * Initiate the synchronous weather lookup when the user
+         * presses the "Look Up Sync" button.
          */
-        void startProcessing();
-
-        /**
-         * Delete all the downloaded images.
-         */
-        void deleteDownloadedImages();
+        boolean getWeatherSync(String location);
     }
 
     /**
-     * This interface defines the minimum API needed by the ImageModel
-     * class in the Model layer to interact with ImagePresenter class
+     * This interface defines the minimum API needed by the WeatherModel
+     * class in the Model layer to interact with WeatherPresenter class
      * in the Presenter layer.  It extends the ContextView interface
      * so the Model layer can access Context's defined in the View
      * layer.
@@ -88,43 +66,38 @@ public interface MVP {
     public interface RequiredPresenterOps
            extends ContextView {
         /**
-         * Interact with the View layer to display the
-         * downloaded/filtered images when all processing 
-         * is complete.
+         * Forwards to the View layer to displays the weather data to
+         * the user.
+         *
+         * @param weatherData
+         *            WeatherData to display
+         * @param errorReason
+         *            Reason that weatherData is null
          */
-        void onProcessingComplete(Uri url,
-                                  Uri pathToImageFile);
+        public void displayResults(WeatherData weatherData,
+                                   String errorMessage);
     }
 
     /**
      * This interface defines the minimum public API provided by the
-     * ImageModel class in the Model layer to the ImagePresenter class
-     * in the Presenter layer.  It extends the ModelOps interface,
-     * which is parameterized by the MVP.RequiredPresenterOps
-     * interface used to define the argument passed to the
-     * onConfigurationChange() method.
+     * WeatherModel class in the Model layer to the WeatherPresenter
+     * class in the Presenter layer.  It extends the ModelOps
+     * interface, which is parameterized by the
+     * MVP.RequiredPresenterOps interface used to define the argument
+     * passed to the onConfigurationChange() method.
      */
     public interface ProvidedModelOps
            extends ModelOps<MVP.RequiredPresenterOps> {
-        /**
-         * Download the image located at the provided Internet url
-         * using the URL class, store it on the android file system
-         * using a FileOutputStream, and return the path to the image
-         * file on disk.
-         *
-         * @param context
-         *          The context in which to write the file.
-         * @param url 
-         *          The URL of the image to download.
-         * @param directoryPathname 
-         *          Pathname of the directory to write the file.
-         * 
-         * @return 
-         *        Absolute path to the downloaded image file on the file
-         *        system.
+       /**
+         * Initiate the asynchronous weather lookup when the user
+         * presses the "Look Up Async" button.
          */
-         Uri downloadImage(Context context,
-                                 Uri url,
-                                 Uri directoryPathname);
-    }
+        boolean getWeatherAsync(String location);
+
+        /**
+         * Initiate the synchronous weather lookup when the user
+         * presses the "Look Up Sync" button.
+         */
+        WeatherData getWeatherSync(String location);
+     }
 }
